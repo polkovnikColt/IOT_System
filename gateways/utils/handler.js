@@ -1,5 +1,5 @@
 const appendToken = require("./authToken");
-const { logRequest } = require("../dataLake/logRequest");
+const { logRequest } = require("../dataLake");
 
 const API_PREFIX = "/api/v1";
 
