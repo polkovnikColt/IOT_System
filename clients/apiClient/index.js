@@ -37,51 +37,19 @@ const injectTimezoneHeader = (config) => {
 
 class ApiClient {
   instance = null;
+  baseUrl = "";
 
-  withLoaderCount = 0;
+  constructor(baseURL) {
+    this.baseURL = baseURL;
+  }
 
   get http() {
     return this.instance != null ? this.instance : this.initHttp();
   }
 
-  handleLoaderRequest = (config) => {
-    if (config.loader) {
-      this.withLoaderCount += 1;
-      rootStore.loaderStore.showLoader();
-    }
-
-    return config;
-  };
-
-  handleLoaderStop = (response) => {
-    if (response?.config?.loader) {
-      this.withLoaderCount -= 1;
-
-      if (this.withLoaderCount === 0) {
-        rootStore.loaderStore.hideLoader();
-      }
-    }
-
-    if (!response?.config) {
-      rootStore.loaderStore.hideLoader();
-    }
-  };
-
-  handleLoaderError = (error) => {
-    this.handleLoaderStop(error);
-
-    return Promise.reject(error);
-  };
-
-  handleLoaderResponse = (response) => {
-    this.handleLoaderStop(response);
-
-    return response;
-  };
-
   initHttp() {
     const http = axios.create({
-      baseURL: envConfig.API_URL,
+      baseURL: this.baseURL,
       headers,
       isSilent: false,
       loader: true,
@@ -91,10 +59,6 @@ class ApiClient {
     });
 
     http.interceptors.request.use(injectToken, (error) =>
-      Promise.reject(error)
-    );
-
-    http.interceptors.request.use(injectDeviceId, (error) =>
       Promise.reject(error)
     );
 
@@ -110,11 +74,7 @@ class ApiClient {
     http.interceptors.response.use(
       (response) => response,
       (error) => {
-        const { response, config } = error;
-
-        if (!config.isSilent) {
-          errorHandler(error);
-        }
+        const { response } = error;
 
         return Promise.reject(response);
       }
@@ -155,4 +115,4 @@ class ApiClient {
   }
 }
 
-module.exports = { apiClient: new ApiClient() };
+module.exports = { ApiClient };
