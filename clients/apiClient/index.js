@@ -6,14 +6,12 @@ const headers = {
   "X-Requested-With": "XMLHttpRequest",
 };
 
-const injectToken = (config) => {
+const injectToken = (token) => (config) => {
   const axiosConfig = config;
 
   try {
-    const token = tokenService.getAccessToken();
-
     if (token != null && !config?.publicMethod) {
-      axiosConfig.headers.Authorization = `Bearer ${token}`;
+      axiosConfig.headers.Authorization = token;
     }
 
     return axiosConfig;
@@ -40,16 +38,9 @@ class ApiClient {
   baseUrl = "";
 
   constructor(baseURL) {
-    this.baseURL = baseURL;
-  }
-
-  get http() {
-    return this.instance != null ? this.instance : this.initHttp();
-  }
-
-  initHttp() {
+    this.baseUrl = baseURL;
     const http = axios.create({
-      baseURL: this.baseURL,
+      baseURL,
       headers,
       isSilent: false,
       loader: true,
@@ -58,17 +49,8 @@ class ApiClient {
       addDeviceId: true,
     });
 
-    http.interceptors.request.use(injectToken, (error) =>
-      Promise.reject(error)
-    );
-
     http.interceptors.request.use(injectTimezoneHeader, (error) =>
       Promise.reject(error)
-    );
-
-    http.interceptors.request.use(
-      (config) => this.handleLoaderRequest(config),
-      this.handleLoaderError
     );
 
     http.interceptors.response.use(
@@ -80,38 +62,42 @@ class ApiClient {
       }
     );
 
-    http.interceptors.response.use(
-      this.handleLoaderResponse,
-      this.handleLoaderError
-    );
-
     this.instance = http;
+  }
 
-    return http;
+  insertToken(token) {
+    this.instance.interceptors.request.use(
+      (config) => {
+        this.instance.defaults.headers["authorization"] = token;
+        console.log(this.instance.defaults.headers);
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
   }
 
   request(config) {
-    return this.http.request(config);
+    return this.instance.request(config);
   }
 
   get(url, config = {}) {
-    return this.http.get(url, config);
+    return this.instance.get(url, config);
   }
 
   post(url, data = {}, config = {}) {
-    return this.http.post(url, data, config);
+    return this.instance.post(url, data, config);
   }
 
   put(url, data = {}, config = {}) {
-    return this.http.put(url, data, config);
+    return this.instance.put(url, data, config);
   }
 
   patch(url, data = {}, config = {}) {
-    return this.http.patch(url, data, config);
+    return this.instance.patch(url, data, config);
   }
 
   delete(url, config = {}) {
-    return this.http.delete(url, config);
+    return this.instance.delete(url, config);
   }
 }
 

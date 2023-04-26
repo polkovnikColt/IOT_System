@@ -7,12 +7,13 @@ const app = express();
 const { asyncHandler, rateLimiter } = require("./utils");
 
 const PORT = process.env.PORT || 1234;
-const PREFIXES = {
-  auth: "http://localhost:2000",
-  deviceToUser: "http://localhost:7000",
-};
 
 const instance = axios.create();
+
+const PREFIXES = {
+  deviceRegistr: "http://localhost:2000",
+  device: "http://localhost:7000",
+};
 
 app.use(rateLimiter);
 app.use(express.json());
