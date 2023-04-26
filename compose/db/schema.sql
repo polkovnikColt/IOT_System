@@ -1,0 +1,10 @@
+CREATE SCHEMA IF NOT EXISTS device_registration_service AUTHORIZATION lv_configs;
+CREATE SCHEMA IF NOT EXISTS device_service AUTHORIZATION lv_configs;
+CREATE SCHEMA IF NOT EXISTS device_to_user_service AUTHORIZATION lv_configs;
+CREATE SCHEMA IF NOT EXISTS user_auth_service AUTHORIZATION lv_configs;
+
+CREATE SCHEMA IF NOT EXISTS partman;
+CREATE
+EXTENSION IF NOT EXISTS pg_partman SCHEMA partman;
+CREATE
+EXTENSION IF NOT EXISTS pg_cron;

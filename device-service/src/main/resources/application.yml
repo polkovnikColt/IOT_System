@@ -1,0 +1,23 @@
+server.port: 9001
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  cloud:
+    kubernetes.enabled: false
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+  datasource:
+    url: jdbc:postgresql://localhost:5432/IoT
+    username: lv_configs
+    password: da8bq2YZZH7eDPKb
+  liquibase:
+    enabled: false
+    contexts: testData, local
