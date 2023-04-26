@@ -1,0 +1,170 @@
+version: "3.0"
+
+networks:
+  livevision:
+
+services:
+
+  postgres:
+    image: lv/postgres-local:13.3-alpine
+    command: postgres -c 'max_connections=200'
+    shm_size: 256m
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    restart: always
+    volumes:
+      - live-vision-db-data:/var/lib/postgresql/data
+    networks:
+      - livevision
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: lv_configs
+      POSTGRES_PASSWORD: da8bq2YZZH7eDPKb
+      POSTGRES_DB: IoT
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-kostiantyn.shchepanovskyi@livevision.com.ua}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-password}
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - livevision
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.0.1
+    restart: always
+    networks:
+      - livevision
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+  kafka:
+    image: confluentinc/cp-kafka:6.0.1
+    restart: always
+    networks:
+      - livevision
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:v0.4.0
+    networks:
+      - livevision
+    ports:
+      - 8092:8080 # http://localhost:8092
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+  kafka-ui-redpanda:
+    container_name: kafka-ui-redpanda
+    image: docker.redpanda.com/vectorized/console:master-0a8fce8
+    networks:
+      - livevision
+    ports:
+      - 8192:8080 # http://localhost:8192
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKERS: kafka:29092
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+  redis:
+    image: redis:7.0.4-alpine
+    restart: always
+    networks:
+      - livevision
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - livevision
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+  local-discovery:
+    image: lvshvo/eureka-local-discovery:1.10.14
+    restart: always
+    networks:
+      - livevision
+    depends_on:
+      - postgres
+    expose:
+      # Internal Actuator
+      - "8081"
+    ports:
+      - "8761:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+volumes:
+  live-vision-db-data:
+  pgadmin:
