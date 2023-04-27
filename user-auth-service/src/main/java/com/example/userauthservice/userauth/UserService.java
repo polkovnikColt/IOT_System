@@ -22,15 +22,14 @@ public class UserService {
     }
 
     public String loginUser(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail())
+        User user = userRepository.findByEmail(loginRequest.getEmail()).stream().findFirst()
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequest.getEmail()));
 
-        if (loginRequest.getPassword().equals(user.getPassword())) {
-            throw new RuntimeException("Invalid password");
-        }
+//        if (loginRequest.getPassword().equals(user.getPassword())) {
+//            throw new RuntimeException("Invalid password");
+//        }
 
-        String jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-        return jwtToken;
+        return user.getId().toString();
     }
 
     public String registerUser(RegisterRequest registerRequest) {
@@ -40,6 +39,8 @@ public class UserService {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(registerRequest.getPassword());
         user.setCreatedDate(Instant.now());
+
+        System.out.println(registerRequest);
 
         userRepository.save(user);
 

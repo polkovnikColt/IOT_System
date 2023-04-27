@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.Jedis;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +16,8 @@ import java.util.UUID;
 @RequestMapping("/api/v1/deviceToUser")
 public class DeviceConnectivityController {
 
+    private static final String KEY = ".v2";
+    private Jedis jedis = new Jedis("localhost", 6379);
     private final DeviceConnectivityService deviceConnectivityService;
 
     public DeviceConnectivityController(DeviceConnectivityService deviceConnectivityService) {
@@ -28,25 +30,24 @@ public class DeviceConnectivityController {
         return new ResponseEntity<>(deviceConnectivity, HttpStatus.OK);
     }
 
-    @GetMapping("/getDeviceById")
-    public ResponseEntity<String> getDeviceById(@RequestParam("userId") String userId,
-                                                @RequestParam("deviceId") String deviceId) throws JsonProcessingException {
-        DeviceConnectivity deviceConnectivity = deviceConnectivityService.getDeviceConnectivityById(UUID.fromString(userId));
+    @PostMapping("/getDeviceById")
+    public ResponseEntity<String> getDeviceById(@RequestBody DeviceUserDto deviceUserDto) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Set<String> devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
-        if (devices.contains(deviceId)) {
+        if (jedis.exists(deviceUserDto.getUserID().toString() + KEY)) {
+            System.out.println("from redis" + jedis.smembers(deviceUserDto.getUserID() + KEY));
+            if (jedis.smembers(deviceUserDto.getUserID() + KEY).contains(deviceUserDto.getDeviceID().toString())) {
+                return new ResponseEntity<>(deviceUserDto.getDeviceID().toString(), HttpStatus.OK);
+            }
+        }
+        String deviceJson = deviceConnectivityService.getDeviceConnectivityById(deviceUserDto.getUserID()).getDevices();
+        Set<String> devices = objectMapper.readValue(deviceJson, Set.class);
+        if (devices.contains(deviceUserDto.getDeviceID().toString())) {
             // Return the device object in the response body
-            return new ResponseEntity<>(deviceId, HttpStatus.OK);
+            return new ResponseEntity<>(deviceUserDto.getDeviceID().toString(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(deviceId, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(deviceUserDto.getDeviceID().toString(), HttpStatus.NOT_FOUND);
         }
 
-    }
-
-    @GetMapping("/getAll/{userId}")
-    public ResponseEntity<List<DeviceConnectivity>> getDeviceConnectivitiesByUserId(@PathVariable UUID userId) {
-        List<DeviceConnectivity> deviceConnectivities = deviceConnectivityService.getDeviceConnectivitiesByUserId(userId);
-        return new ResponseEntity<>(deviceConnectivities, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -72,7 +73,7 @@ public class DeviceConnectivityController {
     }
 
     @PostMapping("/disconnect")
-    public ResponseEntity<String> disconnectDeviceFromUser(@RequestBody DeviceUserDto deviceUserDto) {
+    public ResponseEntity<String> disconnectDeviceFromUser(@RequestBody DeviceUserDto deviceUserDto) throws JsonProcessingException {
         deviceConnectivityService.disconnectDevice(deviceUserDto);
         return ResponseEntity.ok().body("result");
     }

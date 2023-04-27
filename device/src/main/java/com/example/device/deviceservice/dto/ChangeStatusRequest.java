@@ -1,16 +1,15 @@
-package com.example.devicetouserservice.devicetouser.dto;
+package com.example.device.deviceservice.dto;
 
 import java.util.UUID;
 
-public class DeviceRequest {
+public class ChangeStatusRequest {
     private UUID deviceID;
-
     private String status;
 
-    public DeviceRequest() {
+    public ChangeStatusRequest() {
     }
 
-    public DeviceRequest(UUID deviceID, String status) {
+    public ChangeStatusRequest(UUID deviceID, String status) {
         this.deviceID = deviceID;
         this.status = status;
     }
@@ -33,7 +32,7 @@ public class DeviceRequest {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("DeviceRequest{");
+        final StringBuilder sb = new StringBuilder("ChangeStatusRequest{");
         sb.append("deviceID=").append(deviceID);
         sb.append(", status='").append(status).append('\'');
         sb.append('}');

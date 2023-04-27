@@ -8,13 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import redis.clients.jedis.Jedis;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class DeviceConnectivityService {
 
+    private static final String KEY = ".v2";
+    private Jedis jedis = new Jedis("localhost", 6379);
     private final DeviceConnectivityRepository deviceConnectivityRepository;
     private final ConnectionProducer connectionProducer;
 
@@ -30,9 +36,13 @@ public class DeviceConnectivityService {
     }
 
     public Set<String> getAllDevices(UUID id) throws JsonProcessingException {
-        DeviceConnectivity deviceConnectivity = getDeviceConnectivityById(id);
         ObjectMapper objectMapper = new ObjectMapper();
-        Set<String> devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
+        System.out.println("GET ALL " + id);
+        if (jedis.exists(id.toString() + KEY)) {
+            System.out.println("from redis" + jedis.smembers(id + KEY));
+            return jedis.smembers(id + KEY);
+        }
+        Set<String> devices = objectMapper.readValue(getDeviceConnectivityById(id).getDevices(), Set.class);
         return devices;
     }
 
@@ -41,11 +51,6 @@ public class DeviceConnectivityService {
                 .orElseThrow(() -> new RuntimeException("DeviceConnectivity not found with id: " + id));
     }
 
-    public List<DeviceConnectivity> getDeviceConnectivitiesByUserId(UUID userId) {
-        return deviceConnectivityRepository.findAll().stream()
-                .filter(deviceConnectivity -> deviceConnectivity.getUserId().equals(userId))
-                .collect(Collectors.toList());
-    }
 
     public void deleteDeviceConnectivityById(UUID id) {
         deviceConnectivityRepository.deleteById(id);
@@ -73,43 +78,52 @@ public class DeviceConnectivityService {
         }
     }
 
-    public void connectDevice(DeviceUserDto deviceUserDto) throws JsonProcessingException {
+    public void connectDevice(DeviceUserDto deviceUserDto) {
         DeviceConnectivity deviceConnectivity = getDeviceConnectivityById(deviceUserDto.getUserID());
         ObjectMapper objectMapper = new ObjectMapper();
-        Set<String> devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
-        if (devices.contains(deviceUserDto.getDeviceID().toString())) {
-            connectionProducer.sendChangeStatus(deviceUserDto.getDeviceID().toString());
-        } else {
-            RestTemplate restTemplate = new RestTemplate();
+        Set<String> devices;
+        try {
+            devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
 
-            String registrationUrl = "http://localhost:9002/api/v1/deviceRegistr/" + deviceUserDto.getDeviceID();
-            HttpEntity<String> requestEntity = new HttpEntity<>(null);
+            if (devices.contains(deviceUserDto.getDeviceID().toString())) {
+                connectionProducer.sendChangeStatus(deviceUserDto.getDeviceID().toString());
+            } else {
+                RestTemplate restTemplate = new RestTemplate();
 
-            ResponseEntity<String> response = restTemplate.exchange(registrationUrl, HttpMethod.GET, requestEntity, String.class);
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("Cannot get device registration for deviceID: " + deviceUserDto.getDeviceID());
+                String registrationUrl = "http://localhost:9002/api/v1/deviceRegistr/" + deviceUserDto.getDeviceID();
+                HttpEntity<String> requestEntity = new HttpEntity<>(null);
+
+                ResponseEntity<String> response = restTemplate.exchange(registrationUrl, HttpMethod.GET, requestEntity, String.class);
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    throw new RuntimeException("Cannot get device registration for deviceID: " + deviceUserDto.getDeviceID());
+                }
+
+
+                String deviceUrl = "http://localhost:9001/api/v1/device/status/" + deviceUserDto.getDeviceID();
+                requestEntity = new HttpEntity<>(null);
+
+                response = restTemplate.exchange(deviceUrl, HttpMethod.GET, requestEntity, String.class);
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    throw new RuntimeException("Cannot get device for deviceID: " + deviceUserDto.getDeviceID());
+                }
+                Map<String, String> responseBodyMap = new ObjectMapper().readValue(response.getBody(), Map.class);
+
+                String status = responseBodyMap.get("status");
+                if (status.equals("ONLINE")) {
+                    devices.add(deviceUserDto.getDeviceID().toString());
+                    deviceConnectivity.setDevices(objectMapper.writeValueAsString(devices));
+                    deviceConnectivityRepository.save(deviceConnectivity);
+                    String updatedDevices = objectMapper.writeValueAsString(devices);
+                    jedis.sadd(deviceUserDto.getUserID().toString() + KEY, devices.toArray(new String[0]));
+                    jedis.expire(deviceUserDto.getDeviceID().toString() + KEY, 60);
+                }
             }
+        } catch (Exception e) {
 
-
-            String deviceUrl = "http://localhost:9001/api/v1/device/status/" + deviceUserDto.getDeviceID();
-            requestEntity = new HttpEntity<>(null);
-
-            response = restTemplate.exchange(deviceUrl, HttpMethod.GET, requestEntity, String.class);
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("Cannot get device for deviceID: " + deviceUserDto.getDeviceID());
-            }
-            Map<String, String> responseBodyMap = new ObjectMapper().readValue(response.getBody(), Map.class);
-
-            String status = responseBodyMap.get("status");
-            if (status.equals("ONLINE")) {
-                devices.add(deviceUserDto.getDeviceID().toString());
-                deviceConnectivity.setDevices(objectMapper.writeValueAsString(devices));
-                deviceConnectivityRepository.save(deviceConnectivity);
-            }
         }
     }
 
-    public void disconnectDevice(DeviceUserDto deviceUserDto) {
+    public void disconnectDevice(DeviceUserDto deviceUserDto) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
 
         DeviceRequest device = new DeviceRequest(deviceUserDto.getDeviceID(), "OFFLINE");
@@ -120,10 +134,18 @@ public class DeviceConnectivityService {
         HttpEntity<DeviceRequest> requestEntity = new HttpEntity<>(device, headers);
 
         String url = "http://localhost:9001/api/v1/device/changeStatus";
-        ResponseEntity<DeviceRequest> response = restTemplate.exchange(url, HttpMethod.PATCH, requestEntity, DeviceRequest.class);
+        ResponseEntity<DeviceRequest> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, DeviceRequest.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            System.out.println("good");
+            DeviceConnectivity deviceConnectivity = deviceConnectivityRepository.getReferenceById(deviceUserDto.getUserID());
+            ObjectMapper objectMapper = new ObjectMapper();
+            Set<String> devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
+            String updatedDevices = objectMapper.writeValueAsString(devices.stream()
+                    .filter(s -> s.equals(deviceUserDto.getDeviceID().toString())).collect(Collectors.toSet()));
+            deviceConnectivity.setDevices(objectMapper.writeValueAsString(updatedDevices));
+            deviceConnectivityRepository.save(deviceConnectivity);
+            jedis.sadd(deviceUserDto.getUserID().toString() + KEY, devices.toArray(new String[0]));
+            jedis.expire(deviceUserDto.getDeviceID().toString() + KEY, 60);
         } else if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
             throw new RuntimeException("not found");
         } else {

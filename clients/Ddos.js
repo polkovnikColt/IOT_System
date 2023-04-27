@@ -27,7 +27,7 @@ const mapDevicesToUsers = (outerDevices, outerUsers) => {
 };
 
 (async () => {
-  const ENTITIES_NUM = 2;
+  const ENTITIES_NUM = 50000;
   const rawUsers = await createUsers(ENTITIES_NUM);
   const devices = createDevices(ENTITIES_NUM);
   const users = mapDevicesToUsers(devices, rawUsers);

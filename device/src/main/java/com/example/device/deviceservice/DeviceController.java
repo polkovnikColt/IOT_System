@@ -1,5 +1,6 @@
 package com.example.device.deviceservice;
 
+import com.example.device.deviceservice.dto.ChangeStatusRequest;
 import com.example.device.deviceservice.dto.DeviceDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,14 @@ public class DeviceController {
         this.deviceService = deviceService;
     }
 
-    @PatchMapping("/changeStatus")
-    public ResponseEntity<Device> changeDeviceStatus(@RequestBody Device device) {
-        Optional<Device> updatedDevice = deviceService.changeDeviceStatus(device.getId(), device.getStatus());
-        return updatedDevice.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PostMapping("/changeStatus")
+    public ResponseEntity<ChangeStatusRequest> changeDeviceStatus(@RequestBody ChangeStatusRequest request) {
+        Optional<Device> updatedDevice = deviceService.changeDeviceStatus(request.getDeviceID(), Status.valueOf(request.getStatus()));
+        if (updatedDevice.isPresent()) {
+            return ResponseEntity.ok(request);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/status/{id}")
