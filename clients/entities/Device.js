@@ -69,7 +69,7 @@ class Device {
         `Changing status of device with uuid ${this.uuid}, name ${this.name}`
       );
       const body = { deviceID: this.uuid, status };
-      const { data } = await this.apiClient.patch(
+      const { data } = await this.apiClient.post(
         "api/v1/device/changeStatus",
         body
       );
