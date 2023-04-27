@@ -38,6 +38,7 @@ public class DeviceController {
         return new ResponseEntity<>(status, HttpStatus.CREATED);
     }
 
+    //Internal call
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDeviceRegistrationById(@PathVariable("id") UUID id) {
         boolean isDeleted = deviceService.deleteDevice(id);
