@@ -90,7 +90,7 @@ class User {
       console.log(
         `Single device of user with name ${this.name} and id ${uuid}`
       );
-      const body = { userID: this.id, deviceID: uuid };
+      const body = { userId: this.id, deviceId: uuid };
       const { data } = await this.apiClient.post(
         `api/v1/deviceToUser/getDeviceById`,
         body
