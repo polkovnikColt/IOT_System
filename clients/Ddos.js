@@ -55,7 +55,7 @@ const mapDevicesToUsers = (outerDevices, outerUsers) => {
   for (const user of users) {
     const personalDevices = user.devices;
     for (const device of personalDevices) {
-      await user.disconnectToDevice(device);
+      await user.disconnectFromDevice(device);
     }
   }
 
