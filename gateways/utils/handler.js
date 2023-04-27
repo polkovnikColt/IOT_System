@@ -18,6 +18,7 @@ const asyncHandler = (instance, PREFIXES) => async (req, res) => {
       data: body,
     });
     await logRequest(req, { status: serviceResponse.status });
+    console.log(serviceResponse);
     res.status(serviceResponse.status).json(serviceResponse.data).end();
   } catch (e) {
     const { status, data } = e.response ?? {};

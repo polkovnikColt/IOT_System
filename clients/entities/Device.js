@@ -30,7 +30,9 @@ class Device {
         `Registration is successful with status ${this.registrStatus}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -41,7 +43,9 @@ class Device {
       const { data } = await this.apiClient.post(`api/v1/device/create`, body);
       console.log(`Created device ${data}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -54,7 +58,9 @@ class Device {
       );
       console.log(`Deleted device ${data}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -70,7 +76,9 @@ class Device {
       );
       console.log(`Device with uuid ${this.uuid} status now is ${data}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -82,7 +90,9 @@ class Device {
       );
       console.log(`Device with uuid ${this.uuid} status is ${data}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 }

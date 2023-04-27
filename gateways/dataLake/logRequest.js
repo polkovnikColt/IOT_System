@@ -8,11 +8,15 @@ const logRequest = async (req, res, err = "") => {
     baseUrl: req.baseUrl,
     protocol: req.protocol,
     res: { status: res.status },
-    err: err || null,
+    err: (typeof err === "string" ? err : JSON.stringify(err)) || null,
     date: new Date().toLocaleDateString(),
   };
-  const requestSchema = new RequestSchema(options);
-  await requestSchema.save();
+  try {
+    const requestSchema = new RequestSchema(options);
+    await requestSchema.save();
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 module.exports = { logRequest };

@@ -46,7 +46,9 @@ class User {
       // this.apiClient.insertToken(data.token);
       console.log(`Successfully registered user with name ${this.name}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -59,7 +61,9 @@ class User {
       this.id = data;
       console.log(`Successfully logged in user with name ${this.name}`);
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -73,7 +77,9 @@ class User {
         `Successfully got all devices from user with name ${this.name}, data ${data}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -91,7 +97,9 @@ class User {
         `Successfully got devices from user with name ${this.name}, data ${data}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -109,7 +117,9 @@ class User {
         `Successfully connect to device from user with name ${this.name}, data ${data}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
