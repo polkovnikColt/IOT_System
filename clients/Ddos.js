@@ -21,13 +21,13 @@ const mapDevicesToUsers = (outerDevices, outerUsers) => {
   const devices = [...outerDevices];
   const users = [...outerUsers];
   for (let i = 0; i < devices.length; i++) {
-    users[i].setDevices([devices[i].id]);
+    users[i].setDevices([devices[i].uuid]);
   }
   return users;
 };
 
 (async () => {
-  const ENTITIES_NUM = 5000;
+  const ENTITIES_NUM = 2;
   const rawUsers = await createUsers(ENTITIES_NUM);
   const devices = createDevices(ENTITIES_NUM);
   const users = mapDevicesToUsers(devices, rawUsers);

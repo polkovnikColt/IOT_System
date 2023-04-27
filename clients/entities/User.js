@@ -137,7 +137,9 @@ class User {
         `Successfully disconnect to device from user with name ${this.name}, data ${data}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 
@@ -155,7 +157,9 @@ class User {
         `Successfully deleted  device from user with name ${this.name}, data ${data}`
       );
     } catch (e) {
-      console.log("Error", e.data, e.status);
+      if (e) {
+        console.log("Error", e);
+      }
     }
   };
 }
