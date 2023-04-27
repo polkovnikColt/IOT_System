@@ -55,7 +55,7 @@ class User {
   login = async () => {
     try {
       console.log(`Login of user with name ${this.name}`);
-      const { data } = await this.apiClient.post("api/v1/auth/registration", {
+      const { data } = await this.apiClient.post("api/v1/auth/login", {
         token: this.token,
       });
       this.id = data;
