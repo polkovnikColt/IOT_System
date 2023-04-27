@@ -35,7 +35,7 @@ public class DeviceRegistrationController {
         }
     }
 
-    @PostMapping("/api/v1/device/registration")
+    @PostMapping("/registration")
     public ResponseEntity<Status> createDevice(@RequestBody DeviceRegistrationRequest deviceRequest) {
         Status status = deviceRegistrationService.registration(deviceRequest.getDeviceID());
         return new ResponseEntity<>(status, HttpStatus.CREATED);

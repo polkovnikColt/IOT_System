@@ -29,6 +29,13 @@ public class DeviceConnectivityService {
         deviceConnectivityRepository.save(new DeviceConnectivity(userID, jsonString));
     }
 
+    public Set<String> getAllDevices(UUID id) throws JsonProcessingException {
+        DeviceConnectivity deviceConnectivity = getDeviceConnectivityById(id);
+        ObjectMapper objectMapper = new ObjectMapper();
+        Set<String> devices = objectMapper.readValue(deviceConnectivity.getDevices(), Set.class);
+        return devices;
+    }
+
     public DeviceConnectivity getDeviceConnectivityById(UUID id) {
         return deviceConnectivityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("DeviceConnectivity not found with id: " + id));

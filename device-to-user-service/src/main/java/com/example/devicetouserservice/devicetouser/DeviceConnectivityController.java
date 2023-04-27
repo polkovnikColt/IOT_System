@@ -76,4 +76,11 @@ public class DeviceConnectivityController {
         deviceConnectivityService.disconnectDevice(deviceUserDto);
         return ResponseEntity.ok().body("result");
     }
+
+
+    @GetMapping("/getAll/{userId}")
+    public ResponseEntity<Set<String>> getAllDevicesByUserId(@PathVariable UUID userId) throws JsonProcessingException {
+        Set<String> devices = deviceConnectivityService.getAllDevices(userId);
+        return ResponseEntity.ok(devices);
+    }
 }
