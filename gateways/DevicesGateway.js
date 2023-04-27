@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 1234;
 const instance = axios.create();
 
 const PREFIXES = {
-  deviceRegistr: "http://localhost:2000",
-  device: "http://localhost:7000",
+  deviceRegistr: "http://localhost:9002",
+  device: "http://localhost:9001",
 };
 
 app.use(rateLimiter);
