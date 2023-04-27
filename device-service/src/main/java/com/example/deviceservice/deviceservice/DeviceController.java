@@ -1,5 +1,7 @@
 package com.example.deviceservice.deviceservice;
 
+import com.example.deviceservice.deviceservice.dto.DeviceDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,5 +30,11 @@ public class DeviceController {
         Optional<Device> device = deviceService.getDeviceById(id);
         return device.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<Status> createDevice(@RequestBody DeviceDto deviceRequest) {
+        Status status = deviceService.createDevice(deviceRequest);
+        return new ResponseEntity<>(status, HttpStatus.CREATED);
     }
 }

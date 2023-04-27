@@ -1,8 +1,8 @@
 package com.example.deviceservice.deviceservice;
 
+import com.example.deviceservice.deviceservice.dto.DeviceDto;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,8 +15,10 @@ public class DeviceService {
         this.deviceRepository = deviceRepository;
     }
 
-    public List<Device> getAllUsers() {
-        return deviceRepository.findAll();
+
+    public Status createDevice(DeviceDto deviceDto) {
+        deviceRepository.save(new Device(deviceDto.getDeviceId(), Status.OFFLINE, deviceDto.getName()));
+        return Status.OFFLINE;
     }
 
     public Optional<Device> changeDeviceStatus(UUID id, Status status) {
@@ -24,7 +26,6 @@ public class DeviceService {
         if (deviceOptional.isPresent()) {
             Device device = deviceOptional.get();
             device.setStatus(status);
-            System.out.println(device);
             deviceRepository.save(device);
         }
         return deviceOptional;

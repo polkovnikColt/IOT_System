@@ -1,5 +1,8 @@
 server.port: 9004
 
+kafka:
+  bootstrap-servers: localhost:9092
+
 spring:
   jpa:
     hibernate:

@@ -2,15 +2,15 @@ package com.example.userauthservice.userauth.dto;
 
 import java.util.UUID;
 
-public class AuthResponse {
+public class UserResponse {
 
     private UUID id;
     private String jwtToken;
 
-    public AuthResponse() {
+    public UserResponse() {
     }
 
-    public AuthResponse(UUID id, String jwtToken) {
+    public UserResponse(UUID id, String jwtToken) {
         this.id = id;
         this.jwtToken = jwtToken;
     }

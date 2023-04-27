@@ -1,10 +1,11 @@
 package com.example.devicetouserservice.devicetouser;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -12,15 +13,11 @@ import java.util.UUID;
 public class DeviceConnectivity {
 
     @Id
-    @Column(name = "id")
-    private UUID id;
-
-    @Column(name = "devices", columnDefinition = "json")
-    @Convert(converter = JsonStringListConverter.class)
-    private List<String> devices = new ArrayList<>();
-
     @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "devices")
+    private String devices;
 
     @Column(name = "created_date")
     private Instant createdDate;
@@ -28,26 +25,17 @@ public class DeviceConnectivity {
     public DeviceConnectivity() {
     }
 
-    public DeviceConnectivity(UUID id, List<String> devices, UUID userId) {
-        this.id = id;
+    public DeviceConnectivity(UUID userId, String devices) {
         this.devices = devices;
         this.userId = userId;
         this.createdDate = Instant.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public List<String> getDevices() {
+    public String getDevices() {
         return devices;
     }
 
-    public void setDevices(List<String> devices) {
+    public void setDevices(String devices) {
         this.devices = devices;
     }
 

@@ -10,15 +10,12 @@ import java.util.UUID;
 public class DeviceRegistration {
 
     @Id
-    @Column(name = "id")
-    private UUID id;
+    @Column(name = "device_id")
+    private UUID deviceId;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status status;
-
-    @Column(name = "device_id")
-    private UUID deviceId;
 
     @Column(name = "createdDate")
     private Instant createdDate;
@@ -27,19 +24,10 @@ public class DeviceRegistration {
 
     }
 
-    public DeviceRegistration(UUID id, Status status, UUID deviceId) {
-        this.id = id;
-        this.status = status;
+    public DeviceRegistration(UUID deviceId, Status status) {
         this.deviceId = deviceId;
+        this.status = status;
         this.createdDate = Instant.now();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public Status getStatus() {
@@ -66,5 +54,4 @@ public class DeviceRegistration {
         this.createdDate = createdDate;
     }
 
-    // Getters and setters, and other methods if needed
 }

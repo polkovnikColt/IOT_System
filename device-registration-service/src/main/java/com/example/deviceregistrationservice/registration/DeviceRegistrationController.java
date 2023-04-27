@@ -1,5 +1,7 @@
 package com.example.deviceregistrationservice.registration;
 
+import com.example.deviceregistrationservice.registration.request.DeviceRegistrationRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,12 @@ public class DeviceRegistrationController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/api/v1/device/registration")
+    public ResponseEntity<Status> createDevice(@RequestBody DeviceRegistrationRequest deviceRequest) {
+        Status status = deviceRegistrationService.registration(deviceRequest.getDeviceID());
+        return new ResponseEntity<>(status, HttpStatus.CREATED);
     }
 
 }
