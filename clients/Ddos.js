@@ -77,7 +77,7 @@ const mapDevicesToUsers = (outerDevices, outerUsers) => {
   }
 
   for (const device of devices) {
-    await device.changeStatus("online");
+    await device.changeStatus("ONLINE");
     await device.getStatus();
   }
 

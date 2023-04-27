@@ -53,8 +53,7 @@ class Device {
     try {
       console.log(`Deleting device with uuid ${this.uuid}`);
       const { data } = await this.apiClient.delete(
-        `api/v1/deviceRegistr/delete/${this.uuid}`,
-        body
+        `api/v1/deviceRegistr/delete/${this.uuid}`
       );
       console.log(`Deleted device ${data}`);
     } catch (e) {
