@@ -42,8 +42,8 @@ class User {
         "api/v1/auth/registration",
         body
       );
-      this.token = data.token;
-      this.apiClient.insertToken(data.token);
+      this.token = data;
+      // this.apiClient.insertToken(data.token);
       console.log(`Successfully registered user with name ${this.name}`);
     } catch (e) {
       console.log("Error", e.data, e.status);
@@ -56,7 +56,7 @@ class User {
       const { data } = await this.apiClient.post("api/v1/auth/registration", {
         token: this.token,
       });
-      this.id = data.id;
+      this.id = data;
       console.log(`Successfully logged in user with name ${this.name}`);
     } catch (e) {
       console.log("Error", e.data, e.status);
